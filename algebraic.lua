@@ -5,7 +5,7 @@ end
 
 -- returns a
 function cons(a, list)
-  return {val=a, nxt=list, cons = function() return a, list end}
+  return {cons = function() return a, list end}
 end
 
 -- prints a list in [a,b,c] form
