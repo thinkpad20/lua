@@ -78,14 +78,16 @@ add17 = add(17)
 
 print(add17(11)) -- prints 28
 
+
+-- Let's try reformulating the list code like this. Fin is the same as before:
+function newfin() return {fin = true} end
+
+-- But the other stuff is a little different:
 function newcons(val)
    return function(nxt)
       return {cons=function () return val, nxt end}
    end
 end
-
--- same as before
-function newfin() return {fin = true} end
 
 function newmap(f)
    return function(l)
@@ -93,11 +95,90 @@ function newmap(f)
          return l
       else 
          val, nxt = l.cons()
-         return list.cons(f(val), list.map(f, nxt))
+         return newcons(f(val))(newmap(f)(nxt))
       end
    end
 end
 
-function newprint(l)
+-- a simplified print, just prints on lines
+function simpleprint(l)
    newmap(print)(l)
 end
+
+-- let's test it out
+l = newfin()
+for i = 1,10 do l = newcons(i)(l) end
+
+print("Simpleprint test:")
+simpleprint(l) -- prints as expected
+
+-- now let's beef print up a little. First let's make a currying writer:
+
+function write(a)
+   io.write(a)
+   return function(b)
+      return write(b) -- ain't that a nifty little trick? :)
+   end
+end
+
+--testing out this writer, it seems to work:
+print("Writer test:")
+write('hello')(', world!')('\n')
+
+function newprint(l)
+   write("[")
+   if l.cons then
+      val, nxt = l.cons()
+      write(val)
+      newmap(write(", "))(nxt)
+   end
+   print("]")
+end
+
+-- let's try it out:
+print("Newprint test:")
+newprint(l)
+
+-- prints: [10, 987654321]
+-- Drat! What happened? 
+
+-- Ah well, I guess we can use a lambda after all
+function newprint(l)
+   write("[")
+   if l.cons then
+      val, nxt = l.cons()
+      write(val)
+      newmap(function (a) write(", ")(a) end)(nxt)
+   end
+   print("]")
+end
+
+--and now, it works
+print("Newprint test:")
+newprint(l)
+
+-- function compose(f1)
+--    return function (f2)
+--       return function(a)
+--          f1(f2)(a)
+--       end
+--    end
+-- end
+
+-- function mult(a)
+--    return function(b)
+--       return a * b
+--    end
+-- end
+
+-- function yo(a)
+--    print(yo)
+-- end
+
+-- l = newmap(mult(5))(l)
+
+-- newprint(l)
+
+-- l = compose(newmap)(yo)(l)
+
+-- newprint(l)
